@@ -85,6 +85,12 @@ module InjectXaml =
                 writer.WriteNode(reader)
         with 
         | :? XamlException as xamlException -> // From writer
+
+            // Explicitly close the writer. Otherwise, as it is disposed
+            // when it goes out of scope it may raise an exception, which will
+            // prevent the propagation of the helpful one we're just about to raise
+            try writer.Close () with _ -> ()
+
             let message =
                 if reader.HasLineInfo then
                     sprintf "Error parsing XAML contents from %s.\n  Error at line %d, column %d.\n  Element beginning at line %d, column %d." file xamlException.LineNumber xamlException.LinePosition reader.LineNumber reader.LinePosition
